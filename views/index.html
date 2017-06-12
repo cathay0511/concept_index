@@ -1,9 +1,12 @@
 <!doctype html>
 <html>
 <head>
+  <meta charset="utf-8">
   <title>{{ title }}</title>
   <!-- <link rel="stylesheet" href="/static/css/vis-network.min.css"> -->
   <link rel="stylesheet" href="/static/css/index.css">
+  <script src="https://code.jquery.com/jquery-3.2.1.min.js"></script>
+  <script src="https://unpkg.com/vue/dist/vue.js"></script>
 
   <style type="text/css">
     #mynetwork {
@@ -20,6 +23,12 @@
   <div class="item new">+</div>
   <div class="item save">save</div>
   <div class="item search">search</div>
+</div>
+
+<div id="cept_list_container" class="cept-list-container">
+  <ul>
+    <li v-for="item in list" class="item" v-on:click="refreshOriginConcept(item.name)"><span v-text="item.name"></span></li>
+  </ul>
 </div>
 
 <div id="mynetwork" class="cai-concept-structure"></div>
@@ -41,8 +50,44 @@
   </div>
 </div>
 
-<script src="https://code.jquery.com/jquery-3.2.1.min.js"></script>
 <script src="/static/js/vis.min.js"></script>
+<script>
+
+$(function () {
+  var vm = new Vue({
+    el: '#cept_list_container',
+
+    data() {
+      return {
+        list: []
+      }
+    },
+
+    methods: {
+      refreshOriginConcept: function (name) {
+        searchConcept(name);
+      }
+    },
+
+    mounted: function () {
+      var self = this;
+      $.ajax({
+          type: 'get',
+          dataType: 'json',
+          contentType: 'application/json',
+          url: '/api/getAllCept'
+      }).done(function (ret) {
+        self.list = ret;
+      }).fail(function (jqXHR, textStatus) {
+          // Not 200:
+          alert('Error: ' + jqXHR.status);
+      });
+    }
+
+  });
+}());
+</script>
+
 <script type="text/javascript">
 
   var originCid = 0;

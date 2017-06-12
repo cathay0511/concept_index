@@ -90,6 +90,11 @@ async function getConceptDetailByQuery(query) {
 }
 
 module.exports = {
+    'GET /api/getAllCept': async (ctx, next) => {
+        var ret = await ConceptModel.findAll();
+        ctx.rest(ret);
+    },
+
     'GET /api/getCeptById/:id': async (ctx, next) => {
         var cid = parseInt(ctx.params.id);
         var ret = {

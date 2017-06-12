@@ -4,7 +4,7 @@
 	margin-bottom: 20px;
 }
 
-.item {
+.cai-concept-toolbar .item, .cai-concept-detail-container .item {
 	float: right;
 	width: 60px;
 	height: 24px;
@@ -12,6 +12,17 @@
 	text-align: center;
 	cursor: pointer;
 	background-color: green;
+}
+
+.cept-list-container .item {
+	display: inline-block;
+	max-width: 120px;
+	margin: 10px;
+	padding: 0 8px;
+	background-color: gray;
+	cursor: pointer;
+	color: #fff;
+	list-style-type: none;
 }
 
 .cai-concept-structure {
