@@ -1,4 +1,6 @@
-// exec NODE_ENV=production /usr/local/bin/node /where/yourprogram.js >> /var/log/node.log 2>&1
+// https://github.com/foreverjs/forever
+// export NODE_ENV=production
+// forever start app.js
 
 var config = {
     database: 'concept_index_online',
