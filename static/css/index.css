@@ -1,0 +1,29 @@
+.cai-concept-toolbar {
+	width: 100%;
+	height: 24px;
+	margin-bottom: 20px;
+}
+
+.item {
+	float: right;
+	width: 60px;
+	height: 24px;
+	margin-right: 10px;
+	text-align: center;
+	cursor: pointer;
+	background-color: green;
+}
+
+.cai-concept-structure {
+	position: absolute;
+	width: 48%;
+	height: 400px;
+	left: 0;
+}
+
+.cai-concept-detail-container {
+	position: absolute;
+	width: 48%;
+	height: 400px;
+	right: 0;
+}

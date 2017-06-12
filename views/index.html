@@ -1,0 +1,226 @@
+<!doctype html>
+<html>
+<head>
+  <title>{{ title }}</title>
+  <!-- <link rel="stylesheet" href="/static/css/vis-network.min.css"> -->
+  <link rel="stylesheet" href="/static/css/index.css">
+  <script src="https://code.jquery.com/jquery-3.2.1.min.js"></script>
+  <script src="/static/js/vis.js"></script>
+
+  <style type="text/css">
+    #mynetwork {
+      width: 600px;
+      height: 400px;
+      border: 1px solid lightgray;
+    }
+  </style>
+</head>
+<body>
+
+<div class="cai-concept-toolbar">
+  <input type="search" name="search_concept" placeholder="search concept">
+  <div class="item new">+</div>
+  <div class="item save">save</div>
+  <div class="item search">search</div>
+</div>
+
+<div id="mynetwork" class="cai-concept-structure"></div>
+
+<div class="cai-concept-detail-container">
+  <div class="op-panel"></div>
+  <div class="cai-concept-name">
+    <label>名称：</label>
+    <input class="val">
+  </div>
+  <div class="cai-concept-desc">
+    <label>描述：</label>
+    <textarea class="val"></textarea>
+  </div>
+  <div class="cai-add-concept-context">
+    <label>添加上下文关系：</label>
+    <input class="val" type="text" name="concept_name" placeholder="name">
+    <div class="item add">add</div>
+  </div>
+</div>
+
+<script type="text/javascript">
+
+  var originCid = 0;
+  var container = document.getElementById('mynetwork');
+  var network = new vis.Network(container, {}, {});
+
+  $('.cai-concept-toolbar .item.search').on('click', function() {
+    searchConcept($("input[name='search_concept']").val());
+  });
+
+  $('.cai-concept-toolbar .item.new').on('click', function() {
+    originCid = 0;
+    refreshConcept(originCid);
+  });
+
+  function searchConcept(query) {
+    $.ajax({
+        type: 'get',
+        dataType: 'json',
+        contentType: 'application/json',
+        url: '/api/getCeptByQuery/query/' + query
+    }).done(function (ret) {
+      if (ret && ret.id > 0) {
+        refreshConcept(ret.id);
+      }
+    }).fail(function (jqXHR, textStatus) {
+        // Not 200:
+        alert('Error: ' + jqXHR.status);
+    });
+  }
+
+  function refreshConcept(cid) {
+    originCid = cid;
+    if (!cid) {
+      refreshDetail({});
+      refreshContext({}, {});
+      return 0;
+    }
+
+    network = new vis.Network(container, {}, {});
+    $.ajax({
+        type: 'get',
+        dataType: 'json',
+        contentType: 'application/json',
+        url: '/api/getCeptById/' + cid
+    }).done(function (ret) {
+      refreshDetail(ret.detail);
+      refreshContext(ret.ctx, ret.ctxInfoList);
+    }).fail(function (jqXHR, textStatus) {
+        // Not 200:
+        alert('Error: ' + jqXHR.status);
+    });
+  }
+
+  function refreshContext(conceptContext, ctxInfoList) {
+    network.off("doubleClick");
+
+    if (conceptContext && conceptContext.length > 0) {
+      var nd = {};
+      var edgesData = [];
+      for (var i = 0; i < conceptContext.length; i++) {
+        var item = conceptContext[i];
+        nd[item.cid] = 1;
+        nd[item.context_concept_id] = 1;
+        edgesData.push({
+          from: item.cid,
+          to: item.context_concept_id
+        });
+      }
+      var nodesData = [];
+      for (var key in nd) {
+        nodesData.push({id: key, label: ctxInfoList[key]});
+      }
+      network = new vis.Network(container, {nodes: new vis.DataSet(nodesData), edges: new vis.DataSet(edgesData)}, {});
+    } else {
+      network = new vis.Network(container, {}, {});
+    }
+
+    // network event
+    network.on("doubleClick", function (params) {
+      params.event = "[original event]";
+      if (params.nodes.length > 0) {
+        refreshConcept(parseInt(params.nodes[0]));
+      } else if (params.edges.length > 0) {
+        var ns = network.getConnectedNodes(params.edges[0]);
+        if (ns[0] == originCid) {
+          removeCtx(ns[1]);
+        }
+      }
+    });
+  }
+
+  function refreshDetail(detail) {
+    if (detail.id > 0) {
+      $('.cai-concept-name .val').val(detail.name);
+      $('.cai-concept-desc .val').val(detail.description);
+    } else {
+      $('.cai-concept-name .val').val("");
+      $('.cai-concept-desc .val').val("");
+    }
+  }
+
+  // add concept context
+  $('.cai-add-concept-context .item.add').on('click', function() {
+    var name = $("input[name='concept_name']").val();
+    $.ajax({
+        type: 'post',
+        dataType: 'json',
+        contentType: 'application/json',
+        url: '/api/addCtx',
+        data: JSON.stringify({cid: originCid, name: name})
+    }).done(function (ret) {
+        if (ret.id > 0) {
+          refreshConcept(originCid);
+        }
+    }).fail(function (jqXHR, textStatus) {
+        // Not 200:
+        alert('Error: ' + jqXHR.status);
+    });
+  });
+
+  function removeCtx(ccid) {
+    $.ajax({
+        type: 'post',
+        dataType: 'json',
+        contentType: 'application/json',
+        url: '/api/removeCtx',
+        data: JSON.stringify({cid: originCid, ccid: ccid})
+    }).done(function (ret) {
+      refreshConcept(originCid);
+    }).fail(function (jqXHR, textStatus) {
+        // Not 200:
+        alert('Error: ' + jqXHR.status);
+    });
+  }
+
+  // update concept
+  $('.cai-concept-toolbar .item.save').on('click', function() {
+    var name = $('.cai-concept-name .val').val();
+    var description = $('.cai-concept-desc .val').val();
+
+    if (originCid > 0) {
+      $.ajax({
+          type: 'post',
+          dataType: 'json',
+          contentType: 'application/json',
+          url: '/api/updateCept',
+          data: JSON.stringify({cid: originCid, description: description})
+      }).done(function (ret) {
+        if (ret[0]) {
+          alert('done');
+        }
+      }).fail(function (jqXHR, textStatus) {
+          // Not 200:
+          alert('Error: ' + jqXHR.status);
+      });
+    } else {
+      $.ajax({
+          type: 'post',
+          dataType: 'json',
+          contentType: 'application/json',
+          url: '/api/createCept',
+          data: JSON.stringify({name: name, description: description})
+      }).done(function (ret) {
+        if (ret.id) {
+          alert('created');
+          refreshConcept(ret.id);
+        }
+      }).fail(function (jqXHR, textStatus) {
+          // Not 200:
+          alert('Error: ' + jqXHR.status);
+      });
+    }
+  });
+
+  refreshConcept(originCid);
+</script>
+
+
+</body>
+</html>
