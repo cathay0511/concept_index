@@ -1,5 +1,6 @@
 const Sequelize = require('sequelize');
-const config = require('../config');
+const isProduction = process.env.NODE_ENV === 'production';
+const config = isProduction ? require('../config_online') : require('../config');
 
 console.log('init sequelize...');
 
