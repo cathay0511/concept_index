@@ -1,17 +1,22 @@
-.cai-concept-toolbar {
-	width: 100%;
-	height: 24px;
-	margin-bottom: 20px;
-}
+// .cai-concept-toolbar {
+// 	width: 100%;
+// 	height: 24px;
+// 	margin-bottom: 20px;
+// }
 
-.cai-concept-toolbar .item, .cai-concept-detail-container .item {
-	float: right;
-	width: 60px;
-	height: 24px;
-	margin-right: 10px;
-	text-align: center;
-	cursor: pointer;
-	background-color: green;
+// .cai-concept-toolbar .item, .cai-concept-detail-container .item {
+// 	float: right;
+// 	width: 60px;
+// 	height: 24px;
+// 	margin-right: 10px;
+// 	text-align: center;
+// 	cursor: pointer;
+// 	background-color: green;
+// }
+
+.cept-list-container {
+	width: 900px;
+	margin: 0 auto;
 }
 
 .cept-list-container .item {
@@ -25,16 +30,95 @@
 	list-style-type: none;
 }
 
-.cai-concept-structure {
-	position: absolute;
-	width: 48%;
-	height: 400px;
-	left: 0;
+// .cai-concept-structure {
+// 	position: absolute;
+// 	width: 48%;
+// 	height: 400px;
+// 	left: 0;
+// }
+
+// .cai-concept-detail-container {
+// 	position: absolute;
+// 	width: 48%;
+// 	height: 400px;
+// 	right: 0;
+// }
+
+
+.cai-header-container {
+	width: 100%;
+	height: 60px;
 }
 
-.cai-concept-detail-container {
-	position: absolute;
-	width: 48%;
-	height: 400px;
-	right: 0;
+.cai-body-container {
+	width: 900px;
+	margin: 0 auto;
 }
+
+.cai-body-header {
+	width: 860px;
+	height: 50px;
+	margin-top: 20px;
+	padding: 0 20px;
+}
+
+.cai-body-header-info {
+	float: left;
+	height: 50px;
+	line-height: 50px;
+	font-size: 20px;
+}
+
+.cai-body-header-toolbar {
+	float: right;
+	height: 50px;
+	line-height: 50px;
+}
+
+.cai-body-header-toolbar img {
+	vertical-align: middle;
+}
+
+.cai-body-main {
+	width: 860px;
+	margin-top: 20px;
+	padding: 0 20px;
+	overflow: hidden;
+}
+
+.cai-cept-structure {
+	float: left;
+	width: 420px;
+	height: 400px;
+	border: 1px solid lightgray;
+}
+
+.cai-cept-detail {
+	float: right;
+	width: 420px;
+	height: 400px;
+}
+
+.cai-cept-detail .cai-row {
+	width: 400px;
+	margin-top: 10px;
+	padding: 0 10px;
+}
+
+.cai-cept-detail-desc {
+	position: relative;
+}
+
+.cai-cept-detail-desc .cai-cept-desc {
+	display: inline-block;
+	width: 280px;
+	word-wrap: break-word;
+    vertical-align: top;
+}
+
+.cai-cept-detail-desc .cai-edit {
+	position: absolute;
+	top: -8px;
+	right 0px;
+}
+

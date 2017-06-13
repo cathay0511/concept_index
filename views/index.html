@@ -4,36 +4,55 @@
   <meta charset="utf-8">
   <title>{{ title }}</title>
   <!-- <link rel="stylesheet" href="/static/css/vis-network.min.css"> -->
+  <link rel="stylesheet" href="/static/css/basic.css">
   <link rel="stylesheet" href="/static/css/index.css">
   <script src="https://code.jquery.com/jquery-3.2.1.min.js"></script>
   <script src="https://unpkg.com/vue/dist/vue.js"></script>
 
-  <style type="text/css">
-    #mynetwork {
-      width: 600px;
-      height: 400px;
-      border: 1px solid lightgray;
-    }
-  </style>
 </head>
 <body>
 
-<div class="cai-concept-toolbar">
+<div class="cai-header-container"></div>
+<div class="cai-body-container">
+  <div class="cai-body-header">
+    <div class="cai-body-header-info">
+        <span class="cai-label">当前上下文：</span>
+        <span class="cai-origin-cept-name"></span>
+    </div>
+    <div class="cai-body-header-toolbar">
+      <!-- <img src="/static/img/common/preview.png" width="44"> -->
+      <img src="/static/img/common/preview.png" width="44">
+    </div>
+  </div>
+  <div class="cai-body-main">
+    <div id="mynetwork" class="cai-cept-structure"></div>
+    <div class="cai-cept-detail">
+      <div class="cai-row cai-cept-detail-name">
+        <span class="cai-label">概念名称：</span>
+        <span class="cai-cept-name"></span>
+      </div>
+      <div class="cai-row cai-cept-detail-desc">
+        <span class="cai-label">概念描述：</span>
+        <div class="cai-cept-desc"></div>
+        <img class="cai-edit" src="/static/img/common/preview.png" width="44">
+      </div>
+    </div>
+  </div>
+  <div id="cept_list_container" class="cept-list-container">
+    <ul>
+      <li v-for="item in list" class="item" v-on:click="refreshOriginConcept(item.name)"><span v-text="item.name"></span></li>
+    </ul>
+  </div>
+</div>
+
+<!-- <div class="cai-concept-toolbar">
   <input type="search" name="search_concept" placeholder="search concept">
   <div class="item new">+</div>
   <div class="item save">save</div>
   <div class="item search">search</div>
-</div>
+</div> -->
 
-<div id="cept_list_container" class="cept-list-container">
-  <ul>
-    <li v-for="item in list" class="item" v-on:click="refreshOriginConcept(item.name)"><span v-text="item.name"></span></li>
-  </ul>
-</div>
-
-<div id="mynetwork" class="cai-concept-structure"></div>
-
-<div class="cai-concept-detail-container">
+<!-- <div class="cai-concept-detail-container">
   <div class="op-panel"></div>
   <div class="cai-concept-name">
     <label>名称：</label>
@@ -48,7 +67,7 @@
     <input class="val" type="text" name="concept_name" placeholder="name">
     <div class="item add">add</div>
   </div>
-</div>
+</div> -->
 
 <script src="/static/js/vis.min.js"></script>
 <script>
@@ -91,6 +110,7 @@ $(function () {
 <script type="text/javascript">
 
   var originCid = 0;
+  var originConceptDetail = {};
   var container = document.getElementById('mynetwork');
   var network = new vis.Network(container, {}, {});
 
@@ -122,6 +142,7 @@ $(function () {
   function refreshConcept(cid) {
     originCid = cid;
     if (!cid) {
+      refreshOriginDetail({});
       refreshDetail({});
       refreshContext({}, {});
       return 0;
@@ -134,6 +155,7 @@ $(function () {
         contentType: 'application/json',
         url: '/api/getCeptById/' + cid
     }).done(function (ret) {
+      refreshOriginDetail(ret.detail);
       refreshDetail(ret.detail);
       refreshContext(ret.ctx, ret.ctxInfoList);
     }).fail(function (jqXHR, textStatus) {
@@ -143,7 +165,7 @@ $(function () {
   }
 
   function refreshContext(conceptContext, ctxInfoList) {
-    network.off("doubleClick");
+    // network.off("doubleClick");
     network.off("click");
 
     if (conceptContext && conceptContext.length > 0) {
@@ -169,20 +191,21 @@ $(function () {
     }
 
     // network event
-    network.on("doubleClick", function (params) {
-      if (params.nodes.length > 0) {
-        refreshConcept(parseInt(params.nodes[0]));
-      } else if (params.edges.length > 0) {
-        var ns = network.getConnectedNodes(params.edges[0]);
-        if (ns[0] == originCid) {
-          removeCtx(ns[1]);
-        }
-      }
-    });
+    // network.on("doubleClick", function (params) {
+    //   if (params.nodes.length > 0) {
+    //     refreshConcept(parseInt(params.nodes[0]));
+    //   } else if (params.edges.length > 0) {
+    //     var ns = network.getConnectedNodes(params.edges[0]);
+    //     if (ns[0] == originCid) {
+    //       removeCtx(ns[1]);
+    //     }
+    //   }
+    // });
 
     // network event
     network.on("click", function (params) {
       if (params.nodes.length > 0) {
+        var cid = parseInt(params.nodes[0]);
         var options = {
           // position: {x:positionx,y:positiony}, // this is not relevant when focusing on nodes
           scale: 1.0,
@@ -192,18 +215,35 @@ $(function () {
             easingFunction: "easeInOutQuad"
           }
         };
-        network.focus(parseInt(params.nodes[0]), options);
+        network.focus(cid, options);
+
+        $.ajax({
+            type: 'get',
+            dataType: 'json',
+            contentType: 'application/json',
+            url: '/api/getCeptDetailById/' + cid
+        }).done(function (ret) {
+          if (ret && ret.id > 0) {
+            refreshDetail(ret);
+          }
+        }).fail(function (jqXHR, textStatus) {
+            // Not 200:
+            alert('Error: ' + jqXHR.status);
+        });
       }
     });
   }
 
+  function refreshOriginDetail(detail) {
+    if (detail.id > 0) {
+      $('.cai-origin-cept-name').html(detail.name);
+    }
+  }
+
   function refreshDetail(detail) {
     if (detail.id > 0) {
-      $('.cai-concept-name .val').val(detail.name);
-      $('.cai-concept-desc .val').val(detail.description);
-    } else {
-      $('.cai-concept-name .val').val("");
-      $('.cai-concept-desc .val').val("");
+      $('.cai-cept-name').html(detail.name);
+      $('.cai-cept-desc').html(detail.description);
     }
   }
 

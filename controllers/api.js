@@ -122,6 +122,12 @@ module.exports = {
         ctx.rest(ret);
     },
 
+    'GET /api/getCeptDetailById/:id': async (ctx, next) => {
+        var cid = parseInt(ctx.params.id);
+        var ret = await getConceptDetail(cid);
+        ctx.rest(ret);
+    },
+
     'POST /api/createCept': async (ctx, next) => {
         var name = ctx.request.body.name;
         var description = ctx.request.body.description;
