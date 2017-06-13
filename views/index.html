@@ -144,6 +144,7 @@ $(function () {
 
   function refreshContext(conceptContext, ctxInfoList) {
     network.off("doubleClick");
+    network.off("click");
 
     if (conceptContext && conceptContext.length > 0) {
       var nd = {};
@@ -154,7 +155,8 @@ $(function () {
         nd[item.context_concept_id] = 1;
         edgesData.push({
           from: item.cid,
-          to: item.context_concept_id
+          to: item.context_concept_id,
+          arrows:'to'
         });
       }
       var nodesData = [];
@@ -168,7 +170,6 @@ $(function () {
 
     // network event
     network.on("doubleClick", function (params) {
-      params.event = "[original event]";
       if (params.nodes.length > 0) {
         refreshConcept(parseInt(params.nodes[0]));
       } else if (params.edges.length > 0) {
@@ -176,6 +177,22 @@ $(function () {
         if (ns[0] == originCid) {
           removeCtx(ns[1]);
         }
+      }
+    });
+
+    // network event
+    network.on("click", function (params) {
+      if (params.nodes.length > 0) {
+        var options = {
+          // position: {x:positionx,y:positiony}, // this is not relevant when focusing on nodes
+          scale: 1.0,
+          offset: {x:0, y:0},
+          animation: {
+            duration: 1000,
+            easingFunction: "easeInOutQuad"
+          }
+        };
+        network.focus(parseInt(params.nodes[0]), options);
       }
     });
   }
