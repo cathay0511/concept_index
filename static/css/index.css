@@ -110,9 +110,15 @@
 }
 
 .cai-cept-detail-desc .cai-cept-desc {
-	display: inline-block;
-	width: 280px;
-	word-wrap: break-word;
+	width: 300px;
+    border: 0;  
+    background-color:transparent;  
+    /*scrollbar-arrow-color:yellow;  
+    scrollbar-base-color:lightsalmon;  
+    overflow: hidden;*/  
+    color: #666464;  
+    height: 350px;
+    resize : none;
     vertical-align: top;
 }
 
