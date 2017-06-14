@@ -122,3 +122,52 @@
 	right 0px;
 }
 
+
+
+
+
+
+.cai-popup-wrap {
+	display: none;
+	position: fixed;
+	width: 560px;
+	height: 300px;
+	top: 100px;
+	left: 50%;
+	padding: 20px;
+	margin-left: -300px;
+	background-color: #fff;
+	border: 1px solid green;
+	z-index: 999;
+}
+
+#cai_create_cept-popup .cai-row {
+	margin-top: 10px;
+}
+
+#cai_create_cept-popup .cai-field-desc .val {
+	vertical-align: top;
+	width: 400px;
+	height: 200px;
+}
+
+#cai_create_cept-popup .cai-cept-op {
+	display: flex;
+	justify-content: space-around;
+	align-items: center;
+	width: 560px;
+	height: 50px;
+	line-height: 50px;
+}
+
+#cai_create_cept-popup .cai-btn {
+	width: 120px;
+	height: 30px;
+	line-height: 30px;
+	text-align: center;
+	background-color: green;
+	color: #fff;
+	cursor: pointer;
+}
+
+

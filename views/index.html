@@ -21,7 +21,7 @@
     </div>
     <div class="cai-body-header-toolbar">
       <!-- <img src="/static/img/common/preview.png" width="44"> -->
-      <img src="/static/img/common/preview.png" width="44">
+      <img class="op-create" src="/static/img/common/preview.png" width="44">
     </div>
   </div>
   <div class="cai-body-main">
@@ -42,6 +42,23 @@
     <ul>
       <li v-for="item in list" class="item" v-on:click="refreshOriginConcept(item.name)"><span v-text="item.name"></span></li>
     </ul>
+  </div>
+</div>
+
+<div id="cai_create_cept-popup" class="cai-popup-wrap">
+  <div class="cai-cept-create">
+    <div class="cai-row cai-field-name">
+      <label class="cai-label">概念名称：</label>
+      <input class="val" type="text" name="">
+    </div>
+    <div class="cai-row cai-field-desc">
+      <label class="cai-label">概念描述：</label>
+      <textarea maxlength="600" class="val"></textarea>
+    </div>
+    <div class="cai-row cai-cept-op">
+      <div class="cai-btn ok">创建</div>
+      <div class="cai-btn cancel">取消</div>
+    </div>
   </div>
 </div>
 
@@ -121,6 +138,10 @@ $(function () {
   $('.cai-concept-toolbar .item.new').on('click', function() {
     originCid = 0;
     refreshConcept(originCid);
+  });
+
+  $('.cai-body-header-toolbar .op-create').on('click', function() {
+    $('#cai_create_cept-popup').show();
   });
 
   function searchConcept(query) {
@@ -321,8 +342,35 @@ $(function () {
   });
 
   refreshConcept(originCid);
-</script>
 
+  $('#cai_create_cept-popup .cancel').on('click', function() {
+    $('#cai_create_cept-popup').hide();
+  });
+
+  $('#cai_create_cept-popup .ok').on('click', function() {
+    console.log(666);
+    var name = $('#cai_create_cept-popup .cai-field-name .val').val();
+    var description = $('#cai_create_cept-popup .cai-field-desc .val').val();
+    $.ajax({
+        type: 'post',
+        dataType: 'json',
+        contentType: 'application/json',
+        url: '/api/createCept',
+        data: JSON.stringify({name: name, description: description})
+    }).done(function (ret) {
+      if (ret.id) {
+        $('#cai_create_cept-popup .cai-field-name .val').val("");
+        $('#cai_create_cept-popup .cai-field-desc .val').val("");
+        $('#cai_create_cept-popup').hide();
+        location.href = location.href;
+      }
+    }).fail(function (jqXHR, textStatus) {
+        // Not 200:
+        alert('Error: ' + jqXHR.status);
+    });
+  });
+
+</script>
 
 </body>
 </html>
