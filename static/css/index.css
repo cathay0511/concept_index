@@ -1,22 +1,11 @@
-// .cai-concept-toolbar {
-// 	width: 100%;
-// 	height: 24px;
-// 	margin-bottom: 20px;
-// }
-
-// .cai-concept-toolbar .item, .cai-concept-detail-container .item {
-// 	float: right;
-// 	width: 60px;
-// 	height: 24px;
-// 	margin-right: 10px;
-// 	text-align: center;
-// 	cursor: pointer;
-// 	background-color: green;
-// }
-
 .cept-list-container {
 	width: 900px;
 	margin: 0 auto;
+}
+
+.cept-list-container ul {
+	list-style-type: none;
+    padding: 0 10px;	
 }
 
 .cept-list-container .item {
@@ -30,58 +19,53 @@
 	list-style-type: none;
 }
 
-// .cai-concept-structure {
-// 	position: absolute;
-// 	width: 48%;
-// 	height: 400px;
-// 	left: 0;
-// }
-
-// .cai-concept-detail-container {
-// 	position: absolute;
-// 	width: 48%;
-// 	height: 400px;
-// 	right: 0;
-// }
-
-
-.cai-header-container {
-	width: 100%;
-	height: 60px;
-}
-
 .cai-body-container {
 	width: 900px;
 	margin: 0 auto;
 }
 
 .cai-body-header {
+	display: flex;
+    justify-content: space-between;
+    align-items: center;
 	width: 860px;
 	height: 50px;
-	margin-top: 20px;
+	margin-top: 10px;
 	padding: 0 20px;
 }
 
 .cai-body-header-info {
-	float: left;
 	height: 50px;
 	line-height: 50px;
 	font-size: 20px;
 }
 
 .cai-body-header-toolbar {
-	float: right;
-	height: 50px;
-	// line-height: 50px;
+	display: flex;
+	padding-right: 10px;
 }
 
-.cai-body-header-toolbar img {
-	vertical-align: middle;
+.cai-body-header-toolbar input {
+	width: 200px;
+	padding-left: 8px;
+	height: 22px;
+	margin-right: 10px;
+}
+
+.cai-body-header-toolbar .op-wrap {
+	display: inline-block;
+	height: 24px;
+	line-height: 24px;
+}
+
+.cai-body-header-toolbar .op-wrap .iconfont {
+	font-size: 24px;
+	cursor: pointer;
 }
 
 .cai-body-main {
 	width: 860px;
-	margin-top: 20px;
+	margin-top: 10px;
 	padding: 0 20px;
 	overflow: hidden;
 }
@@ -99,6 +83,15 @@
 	height: 400px;
 }
 
+.cai-cept-detail:hover .op-edit {
+	display: inline-block;
+}
+
+.cai-cept-detail .op-wrap .iconfont {
+	font-size: 20px;
+	cursor: pointer;
+}
+
 .cai-cept-detail .cai-row {
 	width: 400px;
 	margin-top: 10px;
@@ -111,19 +104,32 @@
 
 .cai-cept-detail-desc .cai-cept-desc {
 	width: 300px;
-    border: 0;  
+    border: 0;
+    padding: 0;
     background-color:transparent;  
     /*scrollbar-arrow-color:yellow;  
     scrollbar-base-color:lightsalmon;  
     overflow: hidden;*/  
-    color: #666464;  
+    // color: #666464;  
     height: 350px;
     resize : none;
     vertical-align: top;
+    font-size: 14px;
 }
 
 
 
+.cai-popup-mask {
+	display: none;
+	position: fixed;
+	width: 100%;
+	height: 100%;
+	top: 0;
+	left: 0;
+	background-color: #333;
+	opacity: 0.6;
+	z-index: 998;
+}
 
 .cai-popup-wrap {
 	display: none;
@@ -135,7 +141,7 @@
 	padding: 20px;
 	margin-left: -300px;
 	background-color: #fff;
-	border: 1px solid green;
+	border: 1px solid #efefef;
 	z-index: 999;
 }
 
