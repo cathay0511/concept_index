@@ -145,7 +145,11 @@ $(function () {
 
   $('.cai-cept-detail .cai-add-ctx').on('click', function() {
     var cid = $('.cai-cept-detail .hidden-cid').val();
-    ctxCreatePopup.show(cid, refreshConcept);
+    if (cid > 0) {
+      ctxCreatePopup.show(cid, refreshConcept);
+    } else {
+      alert('no selected concept...');
+    }
   });
 
   function searchConcept(query) {
@@ -402,6 +406,7 @@ $(function () {
         }).done(function (ret) {
           if (ret.id) {
             self.close();
+            location.href = location.href;
           }
         }).fail(function (jqXHR, textStatus) {
             // Not 200:
