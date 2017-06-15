@@ -2,6 +2,8 @@ const Sequelize = require('sequelize');
 const isProduction = process.env.NODE_ENV === 'production';
 const config = isProduction ? require('../config_online') : require('../config');
 
+const passport = require('../utils/auth');
+
 console.log('init sequelize...');
 
 var sequelize = new Sequelize(config.database, config.username, config.password, {
@@ -185,5 +187,26 @@ module.exports = {
             }
         });
         ctx.rest(ret);
+    },
+
+    // login
+    'POST /api/login': async (ctx, next) => {
+        return passport.authenticate('local', function(err, user, info, status) {
+            if (user === false) {
+                ctx.redirect('/login');
+            } else {
+                ctx.login(user);
+                ctx.redirect('/index');
+            }
+        })(ctx, next);
+    },
+
+    'GET /api/logout': async (ctx, next) => {
+        ctx.logout();
+        ctx.redirect('/index');
+    },
+
+    'GET /api/userInfo': async (ctx, next) => {
+        ctx.rest(ctx.state.user);
     }
 };

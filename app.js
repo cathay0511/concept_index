@@ -12,6 +12,19 @@ const app = new Koa();
 
 const isProduction = process.env.NODE_ENV === 'production';
 
+app.keys = ['some secret hurr'];
+
+// authentication
+const session = require('koa-session');
+app.use(session({}, app))
+
+// require('./utils/auth')
+const passport = require('./utils/auth')
+app.use(passport.initialize())
+app.use(passport.session())
+
+
+
 // log request URL:
 app.use(async (ctx, next) => {
     console.log(`Process ${ctx.request.method} ${ctx.request.url}...`);
