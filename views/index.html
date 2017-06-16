@@ -20,10 +20,12 @@
   <!--<span class="fr" style="margin-right: 20px; font-size: 16px;">八云哲学体系</span>-->
 </div>
 <div class="cai-body-container">
+  <input class="hidden-uid" type="hidden" name="uid" value="{{user.id}}">
   <div class="cai-body-header">
     <div class="cai-body-header-info">
         <span class="bui-label">当前上下文：</span>
         <span class="cai-origin-cept-name"></span>
+        <!-- <i class="bui-dn iconfont icon-browse cai-origin-cept-ispub"></i> -->
     </div>
     <div class="cai-body-header-toolbar">
       <input type="text" name="search_concept" placeholder="输入概念名称以检索">
@@ -34,9 +36,11 @@
     <div id="mynetwork" class="cai-cept-structure"></div>
     <div class="cai-cept-detail">
       <input class="hidden-cid" type="hidden" name="cid">
+      <input class="hidden-ispub" type="hidden" name="ispub">
       <div class="cai-row cai-cept-detail-name">
         <span class="bui-label">概念名称：</span>
         <span class="cai-cept-name"></span>
+        <i class="bui-dn iconfont icon-browse cai-cept-ispub"></i>
 
         <div class="bui-fr op-wrap">
           <i class="bui-dn iconfont icon-editor op-edit"></i>
@@ -61,10 +65,15 @@
 
 <div id="cai_create_cept-popup" class="cai-popup-wrap">
   <input class="hidden-cid" type="hidden" name="cid">
+  <input class="hidden-ispub" type="hidden" name="ispub">
   <div class="cai-cept-create">
     <div class="cai-row cai-field-name">
       <label class="bui-label">概念名称：</label>
       <input class="val" type="text" name="name">
+    </div>
+    <div class="cai-row cai-field-ispub">
+      <label class="bui-label">是否公开：</label>
+      <input class="val" type="checkbox" name="ispub">
     </div>
     <div class="cai-row cai-field-desc">
       <label class="bui-label">概念描述：</label>
@@ -134,6 +143,7 @@ $(function () {
   var originCid = 0;
   var originConceptDetail = {};
   var container = document.getElementById('mynetwork');
+  var ctxInfoList = {};
   var network = new vis.Network(container, {}, {});
   var ceptCreatePopup = new CeptCreatePopup();
   var ctxCreatePopup = new CtxCreatePopup();
@@ -148,10 +158,12 @@ $(function () {
 
   $('.cai-cept-detail .op-edit').on('click', function() {
     var cid = $('.cai-cept-detail .hidden-cid').val();
+    var isPublic = $('.cai-cept-detail .hidden-ispub').val();
     if (cid > 0) {
       var config = {
         cid: cid,
         name: $('.cai-cept-detail .cai-cept-name').html(),
+        isPublic: isPublic ? true : false,
         description: $('.cai-cept-detail .cai-cept-desc').html()
       }
       ceptCreatePopup.show(config, refreshDetail);
@@ -210,9 +222,11 @@ $(function () {
     });
   }
 
-  function refreshContext(conceptContext, ctxInfoList) {
+  function refreshContext(conceptContext, newCtxInfoList) {
     network.off("doubleClick");
     network.off("click");
+
+    ctxInfoList = newCtxInfoList;
 
     if (conceptContext && conceptContext.length > 0) {
       var nd = {};
@@ -229,7 +243,9 @@ $(function () {
       }
       var nodesData = [];
       for (var key in nd) {
-        nodesData.push({id: key, label: ctxInfoList[key]});
+        var item = ctxInfoList[key];
+        var bgColor = item.dirty ? 'red' : 'green';
+        nodesData.push({id: key, label: item.name, color: {background: bgColor}});
       }
       network = new vis.Network(container, {nodes: new vis.DataSet(nodesData), edges: new vis.DataSet(edgesData)}, {});
     } else {
@@ -238,7 +254,7 @@ $(function () {
 
     network.on("doubleClick", function (params) {
       if (params.nodes.length > 0) {
-        // refreshConcept(parseInt(params.nodes[0]));
+        refreshConcept(parseInt(params.nodes[0]));
       } else if (params.edges.length > 0) {
         var ns = network.getConnectedNodes(params.edges[0]);
         if (ns[0] == originCid) {
@@ -250,6 +266,11 @@ $(function () {
     network.on("click", function (params) {
       if (params.nodes.length > 0) {
         var cid = parseInt(params.nodes[0]);
+        if (ctxInfoList[cid].dirty) {
+          alert('dirty');
+          return;
+        }
+
         var options = {
           scale: 1.0,
           offset: {x:0, y:0},
@@ -280,35 +301,29 @@ $(function () {
   function refreshOriginDetail(detail) {
     if (detail.id > 0) {
       $('.cai-origin-cept-name').html(detail.name);
+
+      if (detail.is_public) {
+        $('.cai-origin-cept-ispub').removeClass("bui-dn");
+      } else {
+        $('.cai-origin-cept-ispub').addClass("bui-dn");
+      }
     }
   }
 
   function refreshDetail(detail) {
     if (detail.id > 0) {
       $('.cai-cept-detail .hidden-cid').val(detail.id);
+      $('.cai-cept-detail .hidden-ispub').val(detail.is_public);
       $('.cai-cept-detail .cai-cept-name').html(detail.name);
       $('.cai-cept-detail .cai-cept-desc').html(detail.description);
+
+      if (detail.is_public) {
+        $('.cai-cept-detail .cai-cept-ispub').removeClass("bui-dn");
+      } else {
+        $('.cai-cept-detail .cai-cept-ispub').addClass("bui-dn");
+      }
     }
   }
-
-  // add concept context
-  // $('.cai-add-concept-context .item.add').on('click', function() {
-  //   var name = $("input[name='concept_name']").val();
-  //   $.ajax({
-  //       type: 'post',
-  //       dataType: 'json',
-  //       contentType: 'application/json',
-  //       url: '/api/addCtx',
-  //       data: JSON.stringify({cid: originCid, name: name})
-  //   }).done(function (ret) {
-  //       if (ret.id > 0) {
-  //         refreshConcept(originCid);
-  //       }
-  //   }).fail(function (jqXHR, textStatus) {
-  //       // Not 200:
-  //       alert('Error: ' + jqXHR.status);
-  //   });
-  // });
 
   function removeCtx(ccid) {
     $.ajax({
@@ -386,6 +401,10 @@ $(function () {
         self.container.find('.hidden-cid').val(config.cid);
         self.container.find('.cai-field-name .val').val(config.name);
         self.container.find('.cai-field-desc .val').val(config.description);
+
+        if (config.isPublic) {
+          self.container.find('.cai-field-ispub .val').attr('checked', "checked");
+        }
         self.container.find('.cai-field-name .val').attr('disabled', true);
       } else {
         self.container.find('.cai-field-name .val').attr('disabled', false);
@@ -398,6 +417,7 @@ $(function () {
     this.save = function () {
       var cid = self.container.find('.hidden-cid').val();
       var name = self.container.find('.cai-field-name .val').val();
+      var isPublic = self.container.find('.cai-field-ispub .val').is(':checked') ? 1 : 0;
       var description = self.container.find('.cai-field-desc .val').val();
       if (cid > 0) {
         $.ajax({
@@ -405,10 +425,15 @@ $(function () {
             dataType: 'json',
             contentType: 'application/json',
             url: '/api/updateCept',
-            data: JSON.stringify({cid: cid, description: description})
+            data: JSON.stringify({cid: cid, is_public: isPublic, description: description})
         }).done(function (ret) {
-          if (ret[0]) {
-            self.callback && self.callback({id: cid, name: name, description: description});
+          if (!ret.status) {
+            var msg = ret.msg || '操作失败';
+            alert(msg);
+          }
+
+          if (ret.status && ret.data && ret.data[0]) {
+            self.callback && self.callback({id: cid, name: name, is_public: isPublic, description: description});
             self.close();
           }
         }).fail(function (jqXHR, textStatus) {
@@ -421,9 +446,9 @@ $(function () {
             dataType: 'json',
             contentType: 'application/json',
             url: '/api/createCept',
-            data: JSON.stringify({name: name, description: description})
+            data: JSON.stringify({name: name, is_public: isPublic, description: description})
         }).done(function (ret) {
-          if (ret.id) {
+          if (ret.id > 0) {
             self.close();
             location.href = location.href;
           }
@@ -437,6 +462,7 @@ $(function () {
     this.close = function () {
       self.container.find('.hidden-cid').val("");
       self.container.find('.cai-field-name .val').val("");
+      self.container.find('.cai-field-ispub .val').removeAttr('checked');
       self.container.find('.cai-field-desc .val').val("");
       self.container.hide();
       self.mask.hide();
@@ -476,7 +502,12 @@ $(function () {
           url: '/api/addCtx',
           data: JSON.stringify({cid: self.model.cid, name: name})
       }).done(function (ret) {
-          if (ret.id > 0) {
+          if (!ret.status) {
+            var msg = ret.msg || '操作失败';
+            alert(msg);
+          }
+
+          if (ret.status && ret.data && ret.data.id > 0) {
             self.callback && self.callback(self.model.cid);
             self.close();
           }
