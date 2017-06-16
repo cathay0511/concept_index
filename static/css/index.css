@@ -19,6 +19,18 @@
 	list-style-type: none;
 }
 
+.cept-list-container .item-external {
+	background-color: green;
+}
+
+.cept-list-container .item-self {
+	background-color: #0066FF;
+}
+
+.cept-list-container .item-self.item-public {
+	background-color: #00FF00;
+}
+
 .cai-body-container {
 	width: 900px;
 	margin: 0 auto;
@@ -138,11 +150,25 @@
 	// height: 300px;
 	top: 100px;
 	left: 50%;
-	padding: 20px;
+	// padding: 20px;
 	margin-left: -300px;
 	background-color: #fff;
-	border: 1px solid #efefef;
+	// border: 1px solid #efefef;
 	z-index: 999;
+}
+
+.cai-popup-header {
+	width: 520px;
+	height: 40px;
+	padding: 0 20px;
+	font-size: 16px;
+	line-height: 40px;
+	// background-color: #999;
+	border-bottom: 1px solid #efefef;
+}
+
+.cai-popup-body {
+	padding: 0 20px;
 }
 
 .cai-popup-wrap .cai-row {
@@ -169,7 +195,7 @@
 	height: 30px;
 	line-height: 30px;
 	text-align: center;
-	background-color: green;
+	background-color: #0066FF;
 	color: #fff;
 	cursor: pointer;
 }

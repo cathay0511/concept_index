@@ -29,7 +29,7 @@
   <input class="hidden-uid" type="hidden" name="uid" value="{{user.id}}">
   <div class="cai-body-header">
     <div class="cai-body-header-info">
-        <span class="bui-label">当前上下文：</span>
+        <span class="bui-label">当前概念：</span>
         <span class="cai-origin-cept-name"></span>
         <!-- <i class="bui-dn iconfont icon-browse cai-origin-cept-ispub"></i> -->
     </div>
@@ -49,9 +49,9 @@
         <i class="bui-dn iconfont icon-browse cai-cept-ispub"></i>
 
         <div class="bui-fr op-wrap">
-          <i class="bui-dn iconfont icon-editor op-edit"></i>
-          <i class="iconfont icon-add op-add-ctx"></i>
-          <i class="iconfont icon-addition op-create"></i>
+          <i class="iconfont icon-add op-add-ctx" title="添加子概念"></i>
+          <i class="bui-dn iconfont icon-editor op-edit" title="编辑概念"></i>
+          <i class="iconfont icon-addition op-create" title="创建概念"></i>
         </div>
       </div>
       <div class="cai-row cai-cept-detail-username">
@@ -66,7 +66,7 @@
   </div>
   <div id="cept_list_container" class="cept-list-container">
     <ul>
-      <li v-for="item in list" class="item" :class="userId == item.user_id ? 'bui-blue' : 'bui-green'" v-on:click="refreshOriginConcept(item.name)"><span v-text="item.name"></span></li>
+      <li v-for="item in list" class="item" :class="{ 'item-external': userId != item.user_id, 'item-self': userId == item.user_id, 'item-public': item.is_public }" v-on:click="refreshOriginConcept(item.name)"><span v-text="item.name"></span></li>
     </ul>
   </div>
 </div>
@@ -75,8 +75,10 @@
 
 <div id="cai_create_cept-popup" class="cai-popup-wrap">
   <input class="hidden-cid" type="hidden" name="cid">
-  <input class="hidden-ispub" type="hidden" name="ispub">
-  <div class="cai-cept-create">
+  <div class="cai-popup-header">
+    <span class="cai-popup-title"></span>
+  </div>
+  <div class="cai-popup-body">
     <div class="cai-row cai-field-name">
       <label class="bui-label">概念名称：</label>
       <input class="val" type="text" name="name">
@@ -98,7 +100,10 @@
 
 <div id="cai_create_ctx-popup" class="cai-popup-wrap">
   <input class="hidden-cid" type="hidden" name="cid">
-  <div class="cai-ctx-create">
+  <div class="cai-popup-header">
+    <span class="cai-popup-title">添加子概念</span>
+  </div>
+  <div class="cai-popup-body">
     <div class="cai-row cai-field-name">
       <label class="bui-label">概念名称：</label>
       <input class="val" type="text" name="name">
@@ -170,7 +175,7 @@ $(function () {
 
   $('.cai-cept-detail .op-edit').on('click', function() {
     var cid = $('.cai-cept-detail .hidden-cid').val();
-    var isPublic = $('.cai-cept-detail .hidden-ispub').val();
+    var isPublic = parseInt($('.cai-cept-detail .hidden-ispub').val());
     if (cid > 0) {
       var config = {
         cid: cid,
@@ -247,10 +252,20 @@ $(function () {
         var item = conceptContext[i];
         nd[item.cid] = 1;
         nd[item.context_concept_id] = 1;
+
+        var bgColor = '#0066FF';
+        if (ctxInfoList[item.cid].user_id != userId) {
+          bgColor = 'green';
+        }
+        if (ctxInfoList[item.context_concept_id].dirty) {
+          bgColor = '#666666';
+        }
+
         edgesData.push({
           from: item.cid,
           to: item.context_concept_id,
-          arrows:'to'
+          arrows:'to',
+          color: bgColor
         });
       }
       var nodesData = [];
@@ -263,9 +278,14 @@ $(function () {
             bgColor = ' #666666';
           }
         }
-        nodesData.push({id: key, label: item.name, color: {background: bgColor}});
+        nodesData.push({
+          id: key,
+          label: item.name,
+          color: {background: bgColor, highlight: {background: bgColor}, hover: {background: bgColor}},
+          font: {color: '#ffffff'}
+        });
       }
-      network = new vis.Network(container, {nodes: new vis.DataSet(nodesData), edges: new vis.DataSet(edgesData)}, {});
+      network = new vis.Network(container, {nodes: new vis.DataSet(nodesData), edges: new vis.DataSet(edgesData)}, {interaction: {hover: true}});
     } else {
       network = new vis.Network(container, {}, {});
     }
@@ -417,6 +437,7 @@ $(function () {
     this.show = function (config, cb) {
       self.callback = cb;
       if (typeof config === 'object') {
+        self.container.find('.cai-popup-title').text('编辑概念');
         self.container.find('.hidden-cid').val(config.cid);
         self.container.find('.cai-field-name .val').val(config.name);
         self.container.find('.cai-field-desc .val').val(config.description);
@@ -426,6 +447,7 @@ $(function () {
         }
         self.container.find('.cai-field-name .val').attr('disabled', true);
       } else {
+        self.container.find('.cai-popup-title').text('新建概念');
         self.container.find('.cai-field-name .val').attr('disabled', false);
       }
 
