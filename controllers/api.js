@@ -23,6 +23,21 @@ var sequelize = new Sequelize(config.database, config.username, config.password,
     }
 });
 
+var UserModel = sequelize.define('user', {
+    id: {
+        type: Sequelize.BIGINT,
+        primaryKey: true,
+        autoIncrement: true   // in order to get the new created record's id after ConceptModel.create done
+    },
+    name: Sequelize.STRING(64),
+    pwd: Sequelize.STRING(128),
+    email: Sequelize.STRING(64)
+}, {
+    freezeTableName: true, // 默认false修改表名为复数，true不修改表名，与数据库表名同步
+    tableName: 'user',
+    timestamps: false
+});
+
 var ConceptModel = sequelize.define('concept', {
     id: {
         type: Sequelize.BIGINT,
@@ -111,7 +126,7 @@ async function getConceptContext(cid, cidDist, uid = 0) {
 }
 
 async function getConceptDetail(cid) {
-    let ret = [];
+    let ret = {};
 
     var concept = await ConceptModel.findOne({
         where: {
@@ -119,7 +134,25 @@ async function getConceptDetail(cid) {
         }
     });
 
-    return concept;
+    if (concept) {
+        var user = await UserModel.findOne({
+            where: {
+                id: concept.user_id
+            }
+        });
+
+        ret = {
+            id: concept.id,
+            name: concept.name,
+            is_public: concept.is_public,
+            user_id: concept.user_id,
+            user_name: user.name,
+            description: concept.description,
+            created: concept.created,
+            updated: concept.updated
+        }
+    }
+    return ret;
 }
 
 module.exports = {
@@ -164,7 +197,8 @@ module.exports = {
                 var cd = await getConceptDetail(key);
                 var item = {
                     id: cd.id,
-                    name: cd.name
+                    name: cd.name,
+                    user_id: cd.user_id
                 }
                 if (cidDist[cd.id] === -1) {
                     item.dirty = true;

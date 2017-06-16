@@ -54,6 +54,10 @@
           <i class="iconfont icon-addition op-create"></i>
         </div>
       </div>
+      <div class="cai-row cai-cept-detail-username">
+        <span class="bui-label">作者名称：</span>
+        <span class="cai-cept-username"></span>
+      </div>
       <div class="cai-row cai-cept-detail-desc">
         <span class="bui-label">概念描述：</span>
         <textarea class="cai-cept-desc" disabled="true"></textarea>
@@ -62,7 +66,7 @@
   </div>
   <div id="cept_list_container" class="cept-list-container">
     <ul>
-      <li v-for="item in list" class="item" v-on:click="refreshOriginConcept(item.name)"><span v-text="item.name"></span></li>
+      <li v-for="item in list" class="item" :class="userId == item.user_id ? 'bui-blue' : 'bui-green'" v-on:click="refreshOriginConcept(item.name)"><span v-text="item.name"></span></li>
     </ul>
   </div>
 </div>
@@ -115,6 +119,7 @@ $(function () {
 
     data() {
       return {
+        userId: {{user.id}},
         list: []
       }
     },
@@ -145,6 +150,7 @@ $(function () {
 </script>
 
 <script type="text/javascript">
+  var userId = {{user.id}};
 
   var originCid = 0;
   var originConceptDetail = {};
@@ -250,7 +256,13 @@ $(function () {
       var nodesData = [];
       for (var key in nd) {
         var item = ctxInfoList[key];
-        var bgColor = item.dirty ? 'red' : 'green';
+        var bgColor = '#0066FF';
+        if (item.user_id != userId) {
+          bgColor = 'green';
+          if (item.dirty) {
+            bgColor = ' #666666';
+          }
+        }
         nodesData.push({id: key, label: item.name, color: {background: bgColor}});
       }
       network = new vis.Network(container, {nodes: new vis.DataSet(nodesData), edges: new vis.DataSet(edgesData)}, {});
@@ -321,6 +333,7 @@ $(function () {
       $('.cai-cept-detail .hidden-cid').val(detail.id);
       $('.cai-cept-detail .hidden-ispub').val(detail.is_public);
       $('.cai-cept-detail .cai-cept-name').html(detail.name);
+      $('.cai-cept-detail .cai-cept-username').html(detail.user_name);
       $('.cai-cept-detail .cai-cept-desc').html(detail.description);
 
       if (detail.is_public) {

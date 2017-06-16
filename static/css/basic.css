@@ -25,6 +25,14 @@ body {
     // z-index: 10086;
 }
 
+.bui-blue {
+	background-color: #0066FF
+}
+
+.bui-green {
+	background-color: green
+}
+
 .bui-dn {
 	display: none;
 }
