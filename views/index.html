@@ -61,8 +61,12 @@
   </div>
   <div id="cept_list_container" class="cept-list-container">
     <div class="op-wrap">
-      <input type="text" v-model="query" placeholder="输入概念名称以检索">
-      <i class="iconfont icon-search" v-on:click="refreshList()"></i>
+      <div class="bui-fl op-tab" :class="{ active: ownerType === 'ALL'}" v-on:click="ownerType = 'ALL'">所有概念</div>
+      <div class="bui-fl op-tab" :class="{ active: ownerType === 'SELF_PRIVATE'}" v-on:click="ownerType = 'SELF_PRIVATE'">我私有的</div>
+      <div class="bui-fl op-tab" :class="{ active: ownerType === 'SELF_PUBLIC'}" v-on:click="ownerType = 'SELF_PUBLIC'">我公开的</div>
+      <div class="bui-fl op-tab op-tab-last" :class="{ active: ownerType === 'PUBLIC'}" v-on:click="ownerType = 'PUBLIC'">公开的</div>
+      <i class="iconfont icon-search bui-fr" v-on:click="refreshList()"></i>
+      <input class="bui-fr" type="text" v-model="query" placeholder="输入概念名称以检索">
     </div>
     <ul>
       <li v-for="item in list" class="item" :class="{ 'item-external': userId != item.user_id, 'item-self': userId == item.user_id, 'item-public': item.is_public }" v-on:click="refreshOriginConcept(item.name)"><span v-text="item.name"></span></li>
@@ -124,8 +128,15 @@ $(function () {
     data() {
       return {
         userId: {{user.id}},
+        ownerType: 'ALL',
         query: '',
         list: []
+      }
+    },
+
+    watch: {
+      ownerType: function (val, oldVal) {
+        this.refreshList();
       }
     },
 
@@ -136,7 +147,7 @@ $(function () {
 
       refreshList: function () {
         var self = this;
-        var url = "/api/getAllCept";
+        var url = "/api/getAllCept/ownerType/" + self.ownerType;
         $.ajax({
             type: 'get',
             dataType: 'json',
@@ -282,7 +293,10 @@ $(function () {
         var bgColor = '#0066FF';
         if (ctxInfoList[item.cid].user_id != userId) {
           bgColor = 'green';
+        } else if (ctxInfoList[item.cid].is_public) {
+          bgColor = ' #00FF00';
         }
+
         if (ctxInfoList[item.context_concept_id].dirty) {
           bgColor = '#666666';
         }
@@ -303,7 +317,10 @@ $(function () {
           if (item.dirty) {
             bgColor = ' #666666';
           }
+        } else if (item.is_public) {
+          bgColor = ' #00FF00';
         }
+
         nodesData.push({
           id: key,
           label: item.name,

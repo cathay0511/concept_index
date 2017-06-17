@@ -156,36 +156,57 @@ async function getConceptDetail(cid) {
 }
 
 module.exports = {
-    'GET /api/getAllCept': async (ctx, next) => {
+    'GET /api/getAllCept/ownerType/:ownerType': async (ctx, next) => {
         var user = ctx.state.user;
         var userId = user ? user.id : 0;
+        var ownerType = ctx.params.ownerType;
+
+        var cnd = {};
+        if (ownerType === 'ALL') {
+            cnd['$or'] = [ {'user_id': userId}, {'is_public': 1} ];
+        } else if (ownerType === 'SELF_PRIVATE') {
+            cnd['user_id'] = userId;
+            cnd['is_public'] = 0;
+        } else if (ownerType === 'SELF_PUBLIC') {
+            cnd['user_id'] = userId;
+            cnd['is_public'] = 1;
+        } else if (ownerType === 'PUBLIC') {
+            cnd['user_id'] = {ne: userId};
+            cnd['is_public'] = 1;
+        }
 
         var ret = await ConceptModel.findAll({
-            'where': {
-                '$or': [
-                    {'user_id': userId},
-                    {'is_public': 1}
-                ]
-            }
+            'where': cnd
         });
         ctx.rest(ret);
     },
 
-    'GET /api/getAllCept/query/:query': async (ctx, next) => {
+    'GET /api/getAllCept/ownerType/:ownerType/query/:query': async (ctx, next) => {
         var user = ctx.state.user;
         var userId = user ? user.id : 0;
         var query = ctx.params.query;
+        var ownerType = ctx.params.ownerType;
+
+        var cnd = {
+            'name': {
+                '$like': '%' + query + '%'
+            }
+        };
+        if (ownerType === 'ALL') {
+            cnd['$or'] = [ {'user_id': userId}, {'is_public': 1} ];
+        } else if (ownerType === 'SELF_PRIVATE') {
+            cnd['user_id'] = userId;
+            cnd['is_public'] = 0;
+        } else if (ownerType === 'SELF_PUBLIC') {
+            cnd['user_id'] = userId;
+            cnd['is_public'] = 1;
+        } else if (ownerType === 'PUBLIC') {
+            cnd['user_id'] = {ne: userId};
+            cnd['is_public'] = 1;
+        }
 
         var ret = await ConceptModel.findAll({
-            'where': {
-                'name': {
-                    '$like': '%' + query + '%'
-                },
-                '$or': [
-                    {'user_id': userId},
-                    {'is_public': 1}
-                ]
-            }
+            'where': cnd
         });
         ctx.rest(ret);
     },
@@ -217,7 +238,8 @@ module.exports = {
                 var item = {
                     id: cd.id,
                     name: cd.name,
-                    user_id: cd.user_id
+                    user_id: cd.user_id,
+                    is_public: cd.is_public
                 }
                 if (cidDist[cd.id] === -1) {
                     item.dirty = true;

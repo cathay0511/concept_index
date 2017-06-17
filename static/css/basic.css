@@ -37,6 +37,10 @@ body {
 	display: none;
 }
 
+.bui-fl {
+	float: left;
+}
+
 .bui-fr {
 	float: right;
 }

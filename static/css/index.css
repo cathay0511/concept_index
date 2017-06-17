@@ -4,7 +4,35 @@
 }
 
 .cept-list-container .op-wrap {
+	height: 30px;
+	line-height: 30px;
+	margin: 40px 0 20px 0;
 	padding: 0 20px;
+	overflow: hidden;
+}
+
+.cept-list-container .op-tab {
+	width: 120px;
+	height: 30px;
+	line-height: 30px;
+	text-align: center;
+	color: #999;
+	border-left: 1px solid #333;
+	cursor: pointer;
+}
+
+.cept-list-container .op-tab.op-tab-last {
+	border-right: 1px solid #333;
+}
+
+
+.cept-list-container .op-tab.active {
+	color: #333;
+}
+
+.cept-list-container input {
+	height: 24px;
+	margin-right: 10px;
 }
 
 .cept-list-container .op-wrap .iconfont {
