@@ -171,6 +171,25 @@ module.exports = {
         ctx.rest(ret);
     },
 
+    'GET /api/getAllCept/query/:query': async (ctx, next) => {
+        var user = ctx.state.user;
+        var userId = user ? user.id : 0;
+        var query = ctx.params.query;
+
+        var ret = await ConceptModel.findAll({
+            'where': {
+                'name': {
+                    '$like': '%' + query + '%'
+                },
+                '$or': [
+                    {'user_id': userId},
+                    {'is_public': 1}
+                ]
+            }
+        });
+        ctx.rest(ret);
+    },
+
     'GET /api/getCeptById/:id': async (ctx, next) => {
         var user = ctx.state.user;
         var userId = user ? user.id : 0;
@@ -311,6 +330,15 @@ module.exports = {
             }
         });
 
+        if (!ceptCtx) {
+            var currentDate = moment().local().format(DATE_FORMAT);
+            var ceptCtx = await ConceptModel.create({
+                name: name,
+                user_id: user.id,
+                created: currentDate
+            });
+        }
+        
         if (cept && ceptCtx) {
             var verifyResult = await verifyCeptOpAuth(ceptCtx.id, user.id, CEPT_OP_TYPE_READ);
             if (!verifyResult) {

@@ -31,11 +31,6 @@
     <div class="cai-body-header-info">
         <span class="bui-label">当前概念：</span>
         <span class="cai-origin-cept-name"></span>
-        <!-- <i class="bui-dn iconfont icon-browse cai-origin-cept-ispub"></i> -->
-    </div>
-    <div class="cai-body-header-toolbar">
-      <input type="text" name="search_concept" placeholder="输入概念名称以检索">
-      <div class="op-wrap"><i class="iconfont icon-search op-search"></i></div>
     </div>
   </div>
   <div class="cai-body-main">
@@ -65,6 +60,10 @@
     </div>
   </div>
   <div id="cept_list_container" class="cept-list-container">
+    <div class="op-wrap">
+      <input type="text" v-model="query" placeholder="输入概念名称以检索">
+      <i class="iconfont icon-search" v-on:click="refreshList()"></i>
+    </div>
     <ul>
       <li v-for="item in list" class="item" :class="{ 'item-external': userId != item.user_id, 'item-self': userId == item.user_id, 'item-public': item.is_public }" v-on:click="refreshOriginConcept(item.name)"><span v-text="item.name"></span></li>
     </ul>
@@ -125,6 +124,7 @@ $(function () {
     data() {
       return {
         userId: {{user.id}},
+        query: '',
         list: []
       }
     },
@@ -132,22 +132,27 @@ $(function () {
     methods: {
       refreshOriginConcept: function (name) {
         searchConcept(name);
+      },
+
+      refreshList: function () {
+        var self = this;
+        var url = "/api/getAllCept";
+        $.ajax({
+            type: 'get',
+            dataType: 'json',
+            contentType: 'application/json',
+            url: self.query ? url + '/query/' + self.query : url
+        }).done(function (ret) {
+          self.list = ret;
+        }).fail(function (jqXHR, textStatus) {
+            // Not 200:
+            alert('Error: ' + jqXHR.status);
+        });
       }
     },
 
     mounted: function () {
-      var self = this;
-      $.ajax({
-          type: 'get',
-          dataType: 'json',
-          contentType: 'application/json',
-          url: '/api/getAllCept'
-      }).done(function (ret) {
-        self.list = ret;
-      }).fail(function (jqXHR, textStatus) {
-          // Not 200:
-          alert('Error: ' + jqXHR.status);
-      });
+      this.refreshList();
     }
 
   });
@@ -158,16 +163,17 @@ $(function () {
   var userId = {{user.id}};
 
   var originCid = 0;
+  if (window.location.hash != "") {
+    var hash = window.location.hash.split("#");
+    originCid = parseInt(hash[1]);
+  }
+
   var originConceptDetail = {};
   var container = document.getElementById('mynetwork');
   var ctxInfoList = {};
   var network = new vis.Network(container, {}, {});
   var ceptCreatePopup = new CeptCreatePopup();
   var ctxCreatePopup = new CtxCreatePopup();
-
-  $('.cai-body-header-toolbar .op-search').on('click', function() {
-    searchConcept($("input[name='search_concept']").val());
-  });
 
   $('.cai-cept-detail .op-create').on('click', function() {
     ceptCreatePopup.show();
@@ -192,7 +198,7 @@ $(function () {
   $('.cai-cept-detail .op-add-ctx').on('click', function() {
     var cid = $('.cai-cept-detail .hidden-cid').val();
     if (cid > 0) {
-      ctxCreatePopup.show(cid, refreshConcept);
+      ctxCreatePopup.show(cid, refreshContextWrap);
     } else {
       alert('no selected concept...');
     }
@@ -232,6 +238,26 @@ $(function () {
     }).done(function (ret) {
       refreshOriginDetail(ret.detail);
       refreshDetail(ret.detail);
+      refreshContext(ret.ctx, ret.ctxInfoList, originCid);
+    }).fail(function (jqXHR, textStatus) {
+        // Not 200:
+        alert('Error: ' + jqXHR.status);
+    });
+  }
+
+  function refreshContextWrap(originCid) {
+    if (!originCid) {
+      refreshContext({}, {});
+      return 0;
+    }
+
+    network = new vis.Network(container, {}, {});
+    $.ajax({
+        type: 'get',
+        dataType: 'json',
+        contentType: 'application/json',
+        url: '/api/getCeptById/' + originCid
+    }).done(function (ret) {
       refreshContext(ret.ctx, ret.ctxInfoList);
     }).fail(function (jqXHR, textStatus) {
         // Not 200:
@@ -285,7 +311,28 @@ $(function () {
           font: {color: '#ffffff'}
         });
       }
-      network = new vis.Network(container, {nodes: new vis.DataSet(nodesData), edges: new vis.DataSet(edgesData)}, {interaction: {hover: true}});
+      network = new vis.Network(container, {
+          nodes: new vis.DataSet(nodesData),
+          edges: new vis.DataSet(edgesData)
+        }, {
+          interaction: {
+            hover: true
+          },
+          layout: {
+            randomSeed: 2
+          }
+        }
+      );
+
+      var options = {
+        scale: 1.0,
+        offset: {x:0, y:0},
+        animation: {
+          duration: 1000,
+          easingFunction: "easeInOutQuad"
+        }
+      };
+      network.focus(originCid, options);
     } else {
       network = new vis.Network(container, {}, {});
     }
@@ -338,6 +385,7 @@ $(function () {
 
   function refreshOriginDetail(detail) {
     if (detail.id > 0) {
+      location.hash = detail.id;
       $('.cai-origin-cept-name').html(detail.name);
 
       if (detail.is_public) {
@@ -491,7 +539,11 @@ $(function () {
         }).done(function (ret) {
           if (ret.id > 0) {
             self.close();
-            location.href = location.href;
+
+            // 设置了 hash 后不能通过 href = href 的方式来刷新页面
+            // 不使用callback主要考虑到需要刷新 vue 控制的概念列表模块的通信
+            location.hash = "#" + ret.id;
+            location.reload(true);
           }
         }).fail(function (jqXHR, textStatus) {
             // Not 200:
@@ -549,8 +601,9 @@ $(function () {
           }
 
           if (ret.status && ret.data && ret.data.id > 0) {
-            self.callback && self.callback(self.model.cid);
+            self.callback && self.callback(originCid);
             self.close();
+            // location.reload(true);
           }
       }).fail(function (jqXHR, textStatus) {
           // Not 200:
