@@ -48,6 +48,7 @@ var ConceptModel = sequelize.define('concept', {
     description: Sequelize.TEXT,
     user_id: Sequelize.BIGINT,
     is_public: Sequelize.BIGINT(2),
+    valid: Sequelize.BIGINT(2),
     created: Sequelize.DATE
 }, {
     freezeTableName: true, // 默认false修改表名为复数，true不修改表名，与数据库表名同步
@@ -130,6 +131,7 @@ async function getConceptDetail(cid) {
 
     var concept = await ConceptModel.findOne({
         where: {
+            valid: 1,
             id: cid
         }
     });
@@ -161,7 +163,9 @@ module.exports = {
         var userId = user ? user.id : 0;
         var ownerType = ctx.params.ownerType;
 
-        var cnd = {};
+        var cnd = {
+            'valid': 1
+        };
         if (ownerType === 'ALL') {
             cnd['$or'] = [ {'user_id': userId}, {'is_public': 1} ];
         } else if (ownerType === 'SELF_PRIVATE') {
@@ -188,6 +192,7 @@ module.exports = {
         var ownerType = ctx.params.ownerType;
 
         var cnd = {
+            'valid': 1,
             'name': {
                 '$like': '%' + query + '%'
             }
@@ -234,14 +239,18 @@ module.exports = {
             cidDist[cid] = 1;
             ret.ctx = await getConceptContext(cid, cidDist, userId);
             for (var key in cidDist) {
-                var cd = await getConceptDetail(key);
-                var item = {
-                    id: cd.id,
-                    name: cd.name,
-                    user_id: cd.user_id,
-                    is_public: cd.is_public
+                item = {
+                    id: key
                 }
-                if (cidDist[cd.id] === -1) {
+
+                var cd = await getConceptDetail(key);
+                if (cd) {
+                    item.name = cd.name;
+                    item.user_id = cd.user_id;
+                    item.is_public = cd.is_public;
+                }
+
+                if (cidDist[key] === -1) {
                     item.dirty = true;
                 }
                 ret.ctxInfoList[key] = item;
@@ -257,6 +266,7 @@ module.exports = {
         var query = ctx.params.query;
         var ret = await ConceptModel.findOne({
             where: {
+                'valid': 1,
                 'name': query,
                 '$or': [
                     {'user_id': userId},
@@ -315,6 +325,32 @@ module.exports = {
         var ret = await ConceptModel.update({
             description: description,
             is_public: isPublic
+        }, {
+            where: {
+                id: cid
+            }
+        });
+
+        ctx.rest({status: 1, data: ret});
+    },
+
+    'POST /api/removeCept': async (ctx, next) => {
+        if (!ctx.isAuthenticated()) {
+            ctx.rest({status: 0, msg: ERROR_MSG_NOT_LOGIN});
+            return;
+        }
+
+        var user = ctx.state.user;
+        var cid = parseInt(ctx.request.body.cid);
+
+        var verifyResult = await verifyCeptOpAuth(cid, user.id, CEPT_OP_TYPE_UPDATE);
+        if (!verifyResult) {
+            ctx.rest({status: 0, msg: ERROR_MSG_NO_CEPT_AUTH});
+            return;
+        }
+
+        var ret = await ConceptModel.update({
+            valid: 0
         }, {
             where: {
                 id: cid

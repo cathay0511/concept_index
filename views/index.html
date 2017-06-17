@@ -44,6 +44,7 @@
         <i class="bui-dn iconfont icon-browse cai-cept-ispub"></i>
 
         <div class="bui-fr op-wrap">
+          <i class="iconfont icon-trash op-remove" title="删除概念"></i>
           <i class="iconfont icon-add op-add-ctx" title="添加子概念"></i>
           <i class="bui-dn iconfont icon-editor op-edit" title="编辑概念"></i>
           <i class="iconfont icon-addition op-create" title="创建概念"></i>
@@ -101,6 +102,18 @@
   </div>
 </div>
 
+<div id="cai_remove_cept-popup" class="cai-popup-wrap">
+  <div class="cai-popup-header">
+    <span class="cai-popup-title">删除概念</span>
+  </div>
+  <div class="cai-popup-body">
+    <div class="cai-row cai-cept-op">
+      <div class="cai-btn ok">确认</div>
+      <div class="cai-btn cancel">取消</div>
+    </div>
+  </div>
+</div>
+
 <div id="cai_create_ctx-popup" class="cai-popup-wrap">
   <input class="hidden-cid" type="hidden" name="cid">
   <div class="cai-popup-header">
@@ -112,7 +125,7 @@
       <input class="val" type="text" name="name">
     </div>
     <div class="cai-row cai-cept-op">
-      <div class="cai-btn ok">保存</div>
+      <div class="cai-btn ok">确认</div>
       <div class="cai-btn cancel">取消</div>
     </div>
   </div>
@@ -127,7 +140,7 @@ $(function () {
 
     data() {
       return {
-        userId: {{user.id}},
+        userId: {{userId}},
         ownerType: 'ALL',
         query: '',
         list: []
@@ -171,7 +184,7 @@ $(function () {
 </script>
 
 <script type="text/javascript">
-  var userId = {{user.id}};
+  var userId = {{userId}};
 
   var originCid = 0;
   if (window.location.hash != "") {
@@ -185,9 +198,16 @@ $(function () {
   var network = new vis.Network(container, {}, {});
   var ceptCreatePopup = new CeptCreatePopup();
   var ctxCreatePopup = new CtxCreatePopup();
+  var ceptRemovePopup = new CeptRemovePopup();
 
   $('.cai-cept-detail .op-create').on('click', function() {
     ceptCreatePopup.show();
+  });
+
+  $('.cai-cept-detail .op-remove').on('click', function() {
+    var cid = $('.cai-cept-detail .hidden-cid').val();
+    var name = $('.cai-cept-detail .cai-cept-name').html();
+    ceptRemovePopup.show(cid, name);
   });
 
   $('.cai-cept-detail .op-edit').on('click', function() {
@@ -621,6 +641,58 @@ $(function () {
             self.callback && self.callback(originCid);
             self.close();
             // location.reload(true);
+          }
+      }).fail(function (jqXHR, textStatus) {
+          // Not 200:
+          alert('Error: ' + jqXHR.status);
+      });
+    }
+
+    this.close = function () {
+      self.container.find('.cai-field-name .val').val("");
+      self.container.hide();
+      self.mask.hide();
+    }
+  };
+
+  function CeptRemovePopup() {
+    var self = this;
+    self.container = $('#cai_remove_cept-popup');
+    self.mask = $('.cai-popup-mask');
+    self.model = {
+      cid: 0
+    }
+
+    self.container.find('.cancel').on('click', function() {
+      self.close();
+    });
+
+    self.container.find('.ok').on('click', function() {
+      self.save();
+    });
+
+    this.show = function (cid, name) {
+      self.model.cid = cid;
+      self.mask.show();
+      self.container.show();
+    }
+
+    this.save = function () {
+      $.ajax({
+          type: 'post',
+          dataType: 'json',
+          contentType: 'application/json',
+          url: '/api/removeCept',
+          data: JSON.stringify({cid: self.model.cid})
+      }).done(function (ret) {
+          if (!ret.status) {
+            var msg = ret.msg || '操作失败';
+            alert(msg);
+          }
+
+          if (ret.status && ret.data) {
+            self.close();
+            location.href = 'index';
           }
       }).fail(function (jqXHR, textStatus) {
           // Not 200:
