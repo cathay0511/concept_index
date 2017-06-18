@@ -362,7 +362,7 @@ $(function () {
       );
 
       var options = {
-        scale: 1.0,
+        scale: 0,
         offset: {x:0, y:0},
         animation: {
           duration: 1000,
@@ -528,7 +528,7 @@ $(function () {
         self.container.find('.cai-field-desc .val').val(config.description);
 
         if (config.isPublic) {
-          self.container.find('.cai-field-ispub .val').attr('checked', "checked");
+          self.container.find('.cai-field-ispub .val').prop('checked', true);
         }
         self.container.find('.cai-field-name .val').attr('disabled', true);
       } else {
@@ -592,7 +592,7 @@ $(function () {
     this.close = function () {
       self.container.find('.hidden-cid').val("");
       self.container.find('.cai-field-name .val').val("");
-      self.container.find('.cai-field-ispub .val').removeAttr('checked');
+      self.container.find('.cai-field-ispub .val').prop('checked', false);
       self.container.find('.cai-field-desc .val').val("");
       self.container.hide();
       self.mask.hide();
