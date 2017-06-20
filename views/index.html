@@ -15,7 +15,7 @@
 <body>
 
 <div class="cai-header">
-  <!--<span class="fl" style="margin-left: 20px; font-size: 16px; width: 163px; text-align: left;">站在巨人的肩膀</span>-->
+  <span style="float: left; margin-left: 20px; font-size: 16px; width: 163px; text-align: left;">simple &! common</span>
   <span style="display: inline-block; width: 192px;">en taro zeratul</span>
   <!--<span class="fr" style="margin-right: 20px; font-size: 16px;">八云哲学体系</span>-->
   {% if user %}
@@ -34,6 +34,9 @@
     </div>
   </div>
   <div class="cai-body-main">
+    <div class="cai-ctx-op">
+      <i class="iconfont icon-browse_fill op-browse-ctx" title="浏览上下文"></i>
+    </div>
     <div id="mynetwork" class="cai-cept-structure"></div>
     <div class="cai-cept-detail">
       <input class="hidden-cid" type="hidden" name="cid">
@@ -233,6 +236,10 @@ $(function () {
     } else {
       alert('no selected concept...');
     }
+  });
+
+  $('.op-browse-ctx').on('click', function() {
+    window.open("ctx#" + originCid);
   });
 
   function searchConcept(query) {

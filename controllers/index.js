@@ -7,6 +7,14 @@ module.exports = {
         });
     },
 
+    'GET /ctx': async (ctx, next) => {
+        ctx.render('ctx.html', {
+            title: 'concept index',
+            user: ctx.state.user,
+            userId: ctx.state.user ? ctx.state.user.id : 0
+        });
+    },
+
     'GET /login': async (ctx, next) => {
         ctx.render('login.html', {
             title: ctx.session.views,
