@@ -8,9 +8,42 @@ html, body {
 	height: 100%;
 }
 
+.iconfont {
+	cursor: pointer;
+}
+
 .cai-full-network {
 	width: 100%;
 	height: 100%;
+}
+
+.cai-cept-search-box {
+	position: fixed;
+	top: 70px;
+	width: 240px;
+	height: 30px;
+	line-height: 30px;
+	left: 50%;
+	margin-left: -110px;
+}
+
+.cai-cept-search-box input {
+	height: 24px;
+	width: 200px;
+	padding-left: 10px;
+}
+
+.cai-cept-search-box .iconfont {
+	vertical-align: middle;
+}
+
+.cai-origin-cept-name {
+	position: fixed;
+	left: 20px;
+	top: 70px;
+	height: 30px;
+	line-height: 30px;
+	font-size: 20px;
 }
 
 .cai-cept-detail {
@@ -23,6 +56,22 @@ html, body {
 	top: 60px;
 	right: 0;
 	color: #fff;
+
+	// transition: transform 3s;
+	// transition-property: transform;
+	// transition-duration: 3s;
+	// transition-timing-function: initial;
+	// transition-delay: 3s;
+	// transform: translate(-320px, 0);
+}
+
+.cai-cept-detail.cai-folder {
+	transition: transform .3s;
+	transition-property: transform;
+	transition-duration: 0.3s;
+	transition-timing-function: initial;
+	transition-delay: initial;
+	transform: translate(320px, 0);
 }
 
 .cai-cept-detail-desc .cai-cept-detail-name {

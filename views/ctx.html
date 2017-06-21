@@ -16,7 +16,7 @@
 
 <div class="cai-header">
   <span style="float: left; margin-left: 20px; font-size: 16px; width: 163px; text-align: left;">simple &! common</span>
-  <span style="display: inline-block; width: 192px;">en taro zeratul</span>
+  <span style="position: absolute; width: 220px; height: 60px; line-height: 60px; left: 50%; margin-left: -110px;">en taro zeratul</span>
   <!--<span class="fr" style="margin-right: 20px; font-size: 16px;">八云哲学体系</span>-->
   {% if user %}
     <a style="float: right; font-size: 16px; color: #999; margin-right: 20px; text-decoration: none;" href="/api/logout">|&nbsp;登出</a>
@@ -27,6 +27,14 @@
 </div>
 <div class="cai-body-container">
   <div id="cai_full_network" class="cai-full-network"></div>
+  <div class="cai-origin-cept-name">
+    <span></span>
+    <i class="iconfont icon-browse cai-detail-switch"></i>
+  </div>
+  <div class="cai-cept-search-box">
+    <input class="" type="text" v-model="query" placeholder="输入概念名称以检索">
+    <i class="iconfont icon-search cai-search-cept"></i>
+  </div>
   <div class="cai-cept-detail">
       <input class="hidden-cid" type="hidden" name="cid">
       <input class="hidden-ispub" type="hidden" name="ispub">
@@ -84,9 +92,31 @@
   };
   var network = new vis.Network(container, data, options);
 
+  $('.cai-search-cept').on('click', function() {
+    var query = $('.cai-cept-search-box input').val();
+    searchConcept(query);
+  });
+
+  function searchConcept(query) {
+    $.ajax({
+        type: 'get',
+        dataType: 'json',
+        contentType: 'application/json',
+        url: '/api/getCeptByQuery/query/' + query
+    }).done(function (ret) {
+      if (ret && ret.id > 0) {
+        refreshConcept(ret.id);
+      }
+    }).fail(function (jqXHR, textStatus) {
+        // Not 200:
+        alert('Error: ' + jqXHR.status);
+    });
+  }
+
   function refreshConcept(cid) {
     originCid = cid;
     if (!cid) {
+      refreshOriginDetail({});
       refreshDetail({});
       refreshContext({}, {});
       return 0;
@@ -99,6 +129,7 @@
         contentType: 'application/json',
         url: '/api/getCeptById/' + cid
     }).done(function (ret) {
+      refreshOriginDetail(ret.detail);
       refreshDetail(ret.detail);
       refreshContext(ret.ctx, ret.ctxInfoList, originCid);
     }).fail(function (jqXHR, textStatus) {
@@ -219,6 +250,13 @@
     });
   }
 
+  function refreshOriginDetail(detail) {
+    if (detail.id > 0) {
+      location.hash = detail.id;
+      $('.cai-origin-cept-name span').html(detail.name);
+    }
+  }
+
   function refreshDetail(detail) {
     if (detail.id > 0) {
       $('.cai-cept-detail .hidden-cid').val(detail.id);
@@ -228,6 +266,12 @@
       $('.cai-cept-detail .cai-cept-desc').html(detail.description);
     }
   }
+
+  $('.cai-detail-switch').on('click', function() {
+    $('.cai-detail-switch').toggleClass('icon-browse');
+    $('.cai-detail-switch').toggleClass('icon-browse_fill');
+    $('.cai-cept-detail').toggleClass('cai-folder');
+  })
 
   refreshConcept(originCid);
 </script>
